@@ -23,7 +23,6 @@ div[data-baseweb="select"]{ border-radius:10px; }
     unsafe_allow_html=True,
 )
 
-# ---------------- Banner ----------------
 st.image(
     "https://m.media-amazon.com/images/I/616QXs8yg0L.png",
     use_container_width=True,
@@ -37,16 +36,16 @@ st.write(
 # ---------------- Load Data & Calculate Similarity instantly ----------------
 @st.cache_data
 def load_data_and_similarity():
-    # Your Direct Google Drive Download Link
-    CSV_URL = "https://docs.google.com/uc?export=download&id=1KbLaNysPS6oiVo6z9iZiWnURBgNOUKo1"
+    # 💡 PASTE YOUR CATBOX LINK HERE
+    CSV_URL = "https://files.catbox.moe/YOUR_LINK_HERE.csv"
 
     try:
-        # 1. Download the dataframe directly from Google Drive
+        # Stream directly from the link
         df_loaded = pd.read_csv(CSV_URL)
         df_loaded.columns = df_loaded.columns.str.strip()
         df_loaded["title"] = df_loaded["title"].astype(str).str.strip()
 
-        # 2. Find the correct text column automatically
+        # Find the correct text column automatically
         text_col = next(
             (
                 col
@@ -56,7 +55,7 @@ def load_data_and_similarity():
             df_loaded.select_dtypes(include=["object"]).columns[-1],
         )
 
-        # 3. Calculate similarity matrix in memory right now
+        # Calculate similarity matrix in memory right now
         cv = CountVectorizer(max_features=10000, stop_words="english")
         dtm = cv.fit_transform(df_loaded[text_col].fillna(""))
         sim_matrix = cosine_similarity(dtm)
@@ -65,7 +64,7 @@ def load_data_and_similarity():
 
     except Exception as e:
         st.error(
-            f"❌ **Failed to load data or build engine.** Please verify your link permissions.\nError: {e}"
+            f"❌ **Failed to load data.** Please verify your link.\nError: {e}"
         )
         st.stop()
 
@@ -97,7 +96,6 @@ if st.button("🎥 Recommend Movies"):
     if index == -1:
         st.error("Movie not found!")
     else:
-        # Extract matches directly from memory
         similarity_index = sorted(
             list(enumerate(similarities[index])),
             key=lambda x: x[1],
