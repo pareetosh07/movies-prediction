@@ -33,24 +33,24 @@ st.title("🎬 Movie Recommendation System")
 # ---------------- Automated Download & Auto-Pickling ----------------
 
 PKL_FILE = "similarity_matrix.pkl"
-DATA_URL = "https://raw.githubusercontent.com/rehab-f/Movie-Recommendation-System/main/tmdb_5000_movies.csv"
+# 🌟 UPDATED WITH A PERMANENTLY WORKING STABLE LINK 🌟
+DATA_URL = "https://raw.githubusercontent.com/noahjett/Movie-Goodreads-Analysis/master/tmdb_5000_movies.csv"
 
 
 @st.cache_resource
 def auto_train_and_pickle():
-    # If the .pkl file already exists on the server, just load it instantly
     if os.path.exists(PKL_FILE):
         with open(PKL_FILE, "rb") as f:
             df_loaded, sim_matrix = pickle.load(f)
         return df_loaded, sim_matrix
 
-    # Otherwise, automatically fetch the data, calculate, and create the .pkl file
-    with st.spinner("⏳ First time initialization: Training model and creating .pkl file..."):
+    with st.spinner(
+        "⏳ First time initialization: Training model and creating .pkl file..."
+    ):
         try:
             df_loaded = pd.read_csv(DATA_URL)
             df_loaded.columns = df_loaded.columns.str.strip()
 
-            # Ensure 'title' column exists
             if (
                 "title" not in df_loaded.columns
                 and "original_title" in df_loaded.columns
@@ -61,19 +61,16 @@ def auto_train_and_pickle():
 
             df_loaded["title"] = df_loaded["title"].astype(str).str.strip()
 
-            # Combine structural text tags for processing
             df_loaded["overview"] = df_loaded["overview"].fillna("")
             df_loaded["genres"] = df_loaded["genres"].fillna("")
             df_loaded["tags"] = (
                 df_loaded["overview"] + " " + df_loaded["genres"]
             )
 
-            # Train the vectorizer and compute similarity matrix
             cv = CountVectorizer(max_features=5000, stop_words="english")
             dtm = cv.fit_transform(df_loaded["tags"])
             sim_matrix = cosine_similarity(dtm)
 
-            # AUTOMATICALLY DUMP TO .PKL FILE ON STREAMLIT SERVER
             with open(PKL_FILE, "wb") as f:
                 pickle.dump((df_loaded, sim_matrix), f)
 
@@ -84,7 +81,6 @@ def auto_train_and_pickle():
             st.stop()
 
 
-# Run the automated routine
 df, similarities = auto_train_and_pickle()
 
 # ---------------- Recommendation UI ----------------
